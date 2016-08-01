@@ -46,9 +46,9 @@ def load_list_of_blocks(ds, play, parent_block=None, role=None, task_include=Non
 
     block_list = []
     if ds:
-        for block in ds:
+        for block_ds in ds:
             b = Block.load(
-                block,
+                block_ds,
                 play=play,
                 parent_block=parent_block,
                 role=role,
@@ -96,7 +96,7 @@ def load_list_of_tasks(ds, play, block=None, role=None, task_include=None, use_h
                 play=play,
                 parent_block=block,
                 role=role,
-                task_include=None,
+                task_include=task_include,
                 use_handlers=use_handlers,
                 variable_manager=variable_manager,
                 loader=loader,
@@ -134,6 +134,9 @@ def load_list_of_tasks(ds, play, block=None, role=None, task_include=None, use_h
                         parent_include = task_include
                         cumulative_path = None
                         while parent_include is not None:
+                            if not isinstance(parent_include, TaskInclude):
+                                parent_include = parent_include._parent
+                                continue
                             parent_include_dir = templar.template(os.path.dirname(parent_include.args.get('_raw_params')))
                             if cumulative_path is None:
                                 cumulative_path = parent_include_dir
@@ -149,7 +152,7 @@ def load_list_of_tasks(ds, play, block=None, role=None, task_include=None, use_h
                             if os.path.exists(include_file):
                                 break
                             else:
-                                parent_include = parent_include._task_include
+                                parent_include = parent_include._parent
                     else:
                         try:
                             include_target = templar.template(t.args['_raw_params'])
@@ -195,8 +198,8 @@ def load_list_of_tasks(ds, play, block=None, role=None, task_include=None, use_h
                     included_blocks = load_list_of_blocks(
                         data,
                         play=play,
-                        parent_block=block,
-                        task_include=t,
+                        parent_block=None,
+                        task_include=t.copy(),
                         role=role,
                         use_handlers=use_handlers,
                         loader=loader,
