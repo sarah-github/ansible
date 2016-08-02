@@ -1279,6 +1279,7 @@ class LinuxHardware(Hardware):
             uptime_seconds_string = uptime_file_content.split(' ')[0]
             self.facts['uptime_seconds'] = int(float(uptime_seconds_string))
 
+    @timeout(10)
     def get_lvm_facts(self):
         """ Get LVM Facts if running as root and lvm utils are available """
 
